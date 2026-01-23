@@ -1,0 +1,58 @@
+name: Generate sitemap.xml
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate sitemap.xml (root HTML only)
+        run: |
+          python3 - << 'PY'
+          import os
+          from datetime import date
+
+          BASE_URL = "https://pestcontrolbucuresti.github.io/pestcontrol-bucuresti"
+          TODAY = date.today().isoformat()
+
+          html_files = [f for f in os.listdir(".") if f.endswith(".html")]
+
+          # pune homepage-ul ca /
+          urls = [BASE_URL + "/"]
+          for f in sorted(html_files):
+            if f.lower() == "index.html":
+              continue
+            urls.append(f"{BASE_URL}/{f}")
+
+          xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+
+          for u in urls:
+            xml.append("  <url>")
+            xml.append(f"    <loc>{u}</loc>")
+            xml.append(f"    <lastmod>{TODAY}</lastmod>")
+            xml.append("  </url>")
+
+          xml.append("</urlset>")
+
+          with open("sitemap.xml", "w", encoding="utf-8") as out:
+            out.write("\n".join(xml) + "\n")
+
+          print("Generated:", len(urls), "URLs")
+          PY
+
+      - name: Commit sitemap.xml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add sitemap.xml
+          git commit -m "chore: update sitemap.xml" || echo "No changes"
+          git push
