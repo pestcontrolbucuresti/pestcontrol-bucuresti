@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://pestcontrolbucuresti.github.io/pestcontrol-bucuresti/sitemap.xml
