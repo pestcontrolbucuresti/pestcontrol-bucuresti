@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate sitemap.xml (HTML only, index.html as homepage)
+      - name: Generate sitemap.xml (HTML only, index.html as homepage, exclude link-map)
         run: |
           python3 - << 'PY'
           import os
@@ -24,11 +24,18 @@ jobs:
           BASE_URL = "https://pestcontrolbucuresti.github.io/pestcontrol-bucuresti"
           TODAY = date.today().isoformat()
 
-          # colectam doar fisierele .html din root
+          # fisiere .html din root
           html_files = sorted([
               f for f in os.listdir(".")
               if f.endswith(".html") and os.path.isfile(f)
           ])
+
+          # Excludem pagini care trebuie crawl-uite, dar nu indexate (ex: link map)
+          EXCLUDE_FILES = {
+              "master-link-map-for-pestcontrol-bucuresti.html",
+          }
+
+          html_files = [f for f in html_files if f not in EXCLUDE_FILES]
 
           urls = []
 
